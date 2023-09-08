@@ -145,6 +145,16 @@ class DownloadService : Service(), OnDownloadListener {
         manager.downloadState = false
         //If it is android Q (api=29) and above, (showNotification=false) will also send a
         // download completion notification
+        if (manager.apkMD5.isNotBlank()) {
+            val md5 = FileUtil.md5(apk)
+            if(manager.apkMD5 != md5){
+                LogUtil.d(TAG, "apk md5 error file $md5 != ${manager.apkMD5}")
+                manager.onDownloadListeners.forEach{
+                    it.error(Throwable("apk md5 error file $md5 != ${manager.apkMD5}"))
+                }
+                return
+            }
+        }
         if (manager.showNotification || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             NotificationUtil.showDoneNotification(
                 this@DownloadService, manager.smallIcon,
